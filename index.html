@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<body>
+<style type="text/css">
+/* The container */
+.container {
+    display: block;
+    position: relative;
+    padding-left: 55px;
+    margin-bottom: 50px;
+    cursor: pointer;
+    font-size: 22px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Hide the browser's default radio button */
+.container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Create a custom radio button */
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 50px;
+    width: 50px;
+    background-color: #eee;
+    border-radius: 50%;
+}
+
+/* On mouse-over, add a grey background color */
+.container:hover input ~ .checkmark {
+    background-color: #ccc;
+}
+
+/* When the radio button is checked, add a blue background */
+.container input:checked ~ .checkmark {
+    background-color: #2196F3;
+}
+
+/* Create the indicator (the dot/circle - hidden when not checked) */
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+/* Show the indicator (dot/circle) when checked */
+.container input:checked ~ .checkmark:after {
+    display: block;
+}
+
+/* Style the indicator (dot/circle) */
+.container .checkmark:after {
+ 	top: 13px;
+	left: 13px;
+	width: 25px;
+	height: 25px;
+	border-radius: 50%;
+	background: white;
+}
+
+</style>
+<h1>Choose issue type and Press Log button</h1>
+<p>Made <span></span> by @annerajb</p>
+
+<label class="container">
+None specified
+  <input type="radio" name="type" value="none"> 	<span class="checkmark"></span>
+  </label>
+ 
+ <label class="container">
+ Navigate on AP route
+  <input type="radio" name="type" value="nav-on-ap" checked> 
+  <input type="radio" name="type" value="none"> 	<span class="checkmark"></span>
+  </label>
+ 
+ <label class="container">
+  Auto Lane Change
+  <input type="radio" name="type" value="auto-lane-change">
+<span class="checkmark"></span>
+  </label>
+  
+  <label class="container">
+  Other HW Disengagment
+  <input type="radio" name="type" value="hw-disengagement">
+  <span class="checkmark"></span>
+  </label>
+  
+  <label class="container">
+  Other non HW 
+  <input type="radio" name="type" value="non-hw-disengagement">
+  <span class="checkmark"></span>
+  </label>
+  <label class="container">
+  	Shadow braking
+    <input type="radio" name="type" value="shadow-braking">
+    <span class="checkmark"></span>
+  </label>
+  
+<label class="container">
+<button onclick="getLocation()">Log event/issue</button>
+</label>
+
+<ul id="demo"></ul>
+
+<script>
+
+var x = document.getElementById("demo");
+var d = new Date();
+
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+        
+    } else { 
+        x.innerHTML = "Geolocation is not supported by this browser.";
+    }
+}
+
+function showPosition(position) {
+var now = new Date;
+  //var utc_timestamp = Date.UTC(now.getUTCFullYear(),now.getUTCMonth(), now.getUTCDate() , 
+//        now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds());
+var selected_type = document.querySelector('input[name="type"]:checked').value;
+
+var content  = "Latitude: " + position.coords.latitude + 
+    "<br>Longitude: " + position.coords.longitude+ 
+    "<br> UTC Time:" + now.getUTCFullYear() + "-" + now.getUTCMonth()+"-"+now.getUTCDate() + " "+now.getUTCHours()+":" + now.getUTCMinutes()+":"+now.getUTCSeconds() + "<br> Event Type:" + selected_type;
+    
+    
+    var pnode = document.createElement("p");
+    pnode.innerHTML = content;
+	var textnode = document.createElement("li");
+	textnode.appendChild(pnode);
+    x.insertBefore(textnode,x.childNodes[0]);
+		
+}
+</script>
+
+</body>
+</html>
