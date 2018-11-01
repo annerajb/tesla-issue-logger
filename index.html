@@ -204,11 +204,11 @@ function getLocation()
     }
     if (navigator.geolocation)
     {
-              navigator.geolocation.getCurrentPosition(showPosition,geo_error);
-              var selected_type = document.querySelector('input[name="type"]:checked').value;
+        navigator.geolocation.getCurrentPosition(showPosition,geo_error);
+        var selected_type = document.querySelector('input[name="type"]:checked').value;
 
-      lastLogEntry.Event = selected_type; 
-  		lastLogEntry.Timestamp = new Date;
+        lastLogEntry.Event = selected_type; 
+        lastLogEntry.Timestamp = new Date;
       
     } else 
     { 
@@ -232,13 +232,17 @@ function logEntry(content)
     textnode.appendChild(pnode);
     x.insertBefore(textnode,x.childNodes[0]);
 }
+function logLastEventToPersistent()
+{
+logPersistentEvent(lastLogEntry.Event,lastLogEntry.Timestamp, lastLogEntry.Coords);
+}
 function showPosition(position) 
 {
 
  	lastLogEntry.Coords = position.coords;
   updateLastLogEntry();
   //update persistent database
-  logPersistentEvent(selected_type,now, position.coords);
+  logLastEventToPersistent();
 }
 </script>
 
