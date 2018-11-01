@@ -28,6 +28,10 @@
     user-select: none;
 }
 
+.error-message
+{
+  
+}
 /* Hide the browser's default radio button */
 .container input {
     position: absolute;
@@ -96,31 +100,45 @@
   <p>Made <span></span> by @annerajb</p>
 
   <label class="container">
-  None specified
-    <input type="radio" name="type" value="none"> 	<span class="checkmark"></span>
+    Start Drive
+    <input type="radio" name="type" value="start" checked> 	<span class="checkmark"></span>
     </label>
 
    <label class="container">
    Red steering wheel
-    <input type="radio" name="type" value="ap-red-wheel" checked> 
-    <input type="radio" name="type" value="none"> 	<span class="checkmark"></span>
+    <input type="radio" name="type" value="ap-red-wheel" > 
+    	<span class="checkmark"></span>
     </label>
 
    <label class="container">
-    Auto Lane Change
-    <input type="radio" name="type" value="auto-lane-change">
-  <span class="checkmark"></span>
+    Auto Lane Change - Car Cancelled
+    <input type="radio" name="type" value="auto-lane-change-car-cancel">
+    <span class="checkmark"></span>
     </label>
-
     <label class="container">
-    Autopilot highway disengaged - lanes
-    <input type="radio" name="type" value="hw-disengagement">
+    Auto Lane Change - Manual Override
+    <input type="radio" name="type" value="auto-lane-change-manual-override">
+    <span class="checkmark"></span>
+    </label>
+    <label class="container">
+    Autopilot Disengaged - Lanes
+    <input type="radio" name="type" value="ap-disengagement-car-lines">
+    <span class="checkmark"></span>
+    </label>
+    <label class="container">
+    User Disengaged - Lanes
+    <input type="radio" name="type" value="ap-disengagement-user-lines">
     <span class="checkmark"></span>
     </label>
 
     <label class="container">
-    Other non HW 
-    <input type="radio" name="type" value="non-hw-disengagement">
+    Navigate on Autopilot - Route
+    <input type="radio" name="type" value="noa-route">
+    <span class="checkmark"></span>
+    </label>
+     <label class="container">
+    Navigate on Autopilot - Faster lane suggestion
+    <input type="radio" name="type" value="noa-lane">
     <span class="checkmark"></span>
     </label>
     <label class="container">
@@ -136,48 +154,74 @@
   </div>
 
   <div class="column">
+  <p class="h2 error-message" id="error_message">
+  
+  </p>
       <ul id="demo"></ul>
   </div>
 <div>
 <script>
 
 var x = document.getElementById("demo");
+var error_text = document.getElementById("error_message");
 var start_timestamp = new Date();
+var dbName = "tesla-autopilot-log"
 function init()
 {
 	start_timestamp = new Date();
+  //var request = indexedDB.open(dbName, 3);
 }
-
-function getLocation() {
-	
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition);
-        
-    } else { 
+function writeErrorMessage(message)
+{
+	error_text.innerHTML = message;
+}
+function geo_error()
+{
+	writeErrorMessage(`ERROR(${err.code}): ${err.message}`);
+}
+function getLocation() 
+{
+		var selected_type = document.querySelector('input[name="type"]:checked').value;
+    if(selected_type == "start")
+    {
+    	init();
+      logEntry("Started drive:"+start_timestamp.toLocaleString());
+      //
+    }
+    if (navigator.geolocation)
+    {
+        navigator.geolocation.getCurrentPosition(showPosition,geo_error);
+    } else 
+    { 
         x.innerHTML = "Geolocation is not supported by this browser.";
     }
 }
-
-function showPosition(position) {
+function logEntry(content)
+{
+ 		var pnode = document.createElement("p");
+    pnode.innerHTML = content;
+    var textnode = document.createElement("li");
+    textnode.appendChild(pnode);
+    x.insertBefore(textnode,x.childNodes[0]);
+}
+function showPosition(position) 
+{
   var now = new Date;
   //workaround for double button press issue.. on m3 39.4
-  if(now.getMilliseconds() - start_timestamp.getMilliseconds()  < 1)
+  /*if(now.getMilliseconds() - start_timestamp.getMilliseconds()  < 1)
   {
 	  return;
-  }
+  }*/
 
   var selected_type = document.querySelector('input[name="type"]:checked').value;
 
   var content  = "Latitude: " + position.coords.latitude + 
       "<br>Longitude: " + position.coords.longitude+ 
-      "<br> UTC Time:" + now.toUTCString() + "<br> Event Type:" + selected_type;
+      "<br> UTC Time:" + now.toLocaleString() +
+      "<br> Event Type:" + selected_type;
     
     
-    var pnode = document.createElement("p");
-    pnode.innerHTML = content;
-	var textnode = document.createElement("li");
-	textnode.appendChild(pnode);
-    x.insertBefore(textnode,x.childNodes[0]);
+   logEntry(content);
 		
 }
 </script>
