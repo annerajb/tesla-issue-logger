@@ -165,36 +165,64 @@
 var x = document.getElementById("demo");
 var error_text = document.getElementById("error_message");
 var start_timestamp = new Date();
-var dbName = "tesla-autopilot-log"
-function init()
+var dbName = "tesla-autopilot-log";
+var localStorageTempObject = [];
+var lastLogEntry = {Timestamp:null, 
+Event:null,
+Coords:null};
+function startDrive()
 {
 	start_timestamp = new Date();
-  //var request = indexedDB.open(dbName, 3);
+  localStorage.clear()
+   //var request = indexedDB.open(dbName, 3);
+}
+function logPersistentEvent(event, time,coordinates)
+{
+  
+  var logItem = {Timestamp:time, Event:event,Coords:coordinates};
+  localStorageTempObject.push(logItem);
+  
+  localStorage.lastLoggedDrive = JSON.stringify(localStorageTempObject);
 }
 function writeErrorMessage(message)
 {
 	error_text.innerHTML = message;
 }
-function geo_error()
+function geo_error(err)
 {
 	writeErrorMessage(`ERROR(${err.code}): ${err.message}`);
 }
 function getLocation() 
 {
+//callback for button press
 		var selected_type = document.querySelector('input[name="type"]:checked').value;
     if(selected_type == "start")
     {
-    	init();
+    	startDrive();
       logEntry("Started drive:"+start_timestamp.toLocaleString());
-      //
+      logPersistentEvent("started",start_timestamp,null);
     }
     if (navigator.geolocation)
     {
-        navigator.geolocation.getCurrentPosition(showPosition,geo_error);
+              navigator.geolocation.getCurrentPosition(showPosition,geo_error);
+              var selected_type = document.querySelector('input[name="type"]:checked').value;
+
+      lastLogEntry.Event = selected_type; 
+  		lastLogEntry.Timestamp = new Date;
+      
     } else 
     { 
         x.innerHTML = "Geolocation is not supported by this browser.";
     }
+}
+function updateLastLogEntry()
+{
+	 var content  = "Latitude: " + lastLogEntry.Coords.latitude + 
+      "<br>Longitude: " + lastLogEntry.Coords.longitude+ 
+      "<br> Local Time:" + lastLogEntry.Timestamp.toLocaleString() +
+      "<br> Event Type:" + lastLogEntry.Event;
+    logEntry(content);
+ 
 }
 function logEntry(content)
 {
@@ -206,23 +234,11 @@ function logEntry(content)
 }
 function showPosition(position) 
 {
-  var now = new Date;
-  //workaround for double button press issue.. on m3 39.4
-  /*if(now.getMilliseconds() - start_timestamp.getMilliseconds()  < 1)
-  {
-	  return;
-  }*/
 
-  var selected_type = document.querySelector('input[name="type"]:checked').value;
-
-  var content  = "Latitude: " + position.coords.latitude + 
-      "<br>Longitude: " + position.coords.longitude+ 
-      "<br> UTC Time:" + now.toLocaleString() +
-      "<br> Event Type:" + selected_type;
-    
-    
-   logEntry(content);
-		
+ 	lastLogEntry.Coords = position.coords;
+  updateLastLogEntry();
+  //update persistent database
+  logPersistentEvent(selected_type,now, position.coords);
 }
 </script>
 
