@@ -152,12 +152,24 @@
     <button class="button" onclick="getLocation()">Log event/issue</button>
     </label>
   </div>
-
+<div id="qrcode"></div>
   <div class="column">
   <p class="h2 error-message" id="error_message">
   
   </p>
-      <ul id="demo"></ul>
+<p>
+Current Drive
+</p>
+      <ul id="demo" style="height:50vh;"></ul>
+      <div id="pastDriveLog" style="display:none;">
+        <p>
+        Past Drive Log Founds: <div id="pastDriveCount"></div>
+        
+        
+        This will be retrievable in a future version.
+        </p>
+         <ul id="old Drives"></ul>
+    </div>
   </div>
 <div>
 <script>
@@ -175,6 +187,7 @@ var dbName = "tesla-autopilot-log";
 var currentDriveEntries = [];
 var driveInProgress = false;
 var queueLogEntry = initLogEntry();
+var pastDriveList = [];
 document.addEventListener('DOMContentLoaded', function() 
 {
    //Load Previous drive items
@@ -190,8 +203,30 @@ document.addEventListener('DOMContentLoaded', function()
       driveInProgress = true;
       driveButton.innerHTML = "End Drive";
    }
+   pastDriveList = retrievePastDrivesList();
+   if(pastDriveList && pastDriveList.length > 0)
+   {
+   		var dl = document.getElementById('pastDriveLog');
+      dl.style.display = "block";
+      var countPastDriveLog= document.getElementById('pastDriveCount');
+      countPastDriveLog.innerHTML = pastDriveList.length;
+      //display that we have old drives saved
+      /*for(let entry of pastDriveList)
+      {
+
+      }*/
+   }
    
 }, false);
+function retrievePastDrivesList()
+{
+	var pastDrivesStr = localStorage.getItem('pastDrivesList');
+    if(!pastDrivesStr)
+    {
+      pastDrivesStr = JSON.stringify([]);
+    }
+    return JSON.parse(pastDrivesStr);
+}
 function startDrive()
 {
     var start_timestamp = new Date();
@@ -224,13 +259,9 @@ function endDrive()
 }
 function saveCurrentDrivePermanently()
 {
-//load past Drives
-	var pastDrivesStr = localStorage.getItem('pastDrivesList');
-	if(!pastDrivesStr)
-  {
-  	pastDrivesStr = JSON.stringify([]);
-  }
-  pastDrives = JSON.parse(pastDrivesStr);
+	//load past Drives
+	
+  pastDrives = retrievePastDrivesList();
   pastDrives.push(currentDriveEntries);
   //save past drives
   localStorage.setItem('pastDrivesList', JSON.stringify(pastDrives));
