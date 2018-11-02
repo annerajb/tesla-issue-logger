@@ -163,22 +163,38 @@
 <script>
 function initLogEntry()
 {
-return {Timestamp:null, 
-Event:null,
-Coords:null};
+  return {Timestamp:null, 
+  Event:null,
+  Coords:null};
 }
 var driveEntries = document.getElementById("demo");
 var driveButton = document.getElementById("driveBtn");
 var error_text = document.getElementById("error_message");
-var start_timestamp = new Date();
+
 var dbName = "tesla-autopilot-log";
 var currentDriveEntries = [];
 var driveInProgress = false;
 var queueLogEntry = initLogEntry();
-
+document.addEventListener('DOMContentLoaded', function() 
+{
+   //Load Previous drive items
+   var pastUnifinishedDriveStr = localStorage.getItem('currentDriveEntries');
+   if(pastUnifinishedDriveStr)
+   {
+      //we found items 
+      currentDriveEntries = JSON.parse(pastUnifinishedDriveStr);
+      for(let entry of currentDriveEntries)
+      {
+      	displayLogEntry(generateLogEntryString(entry));
+      }
+      driveInProgress = true;
+      driveButton.innerHTML = "End Drive";
+   }
+   
+}, false);
 function startDrive()
 {
-    start_timestamp = new Date();
+    var start_timestamp = new Date();
     clearCurrentDriveLog();
     
     displayLogEntry("Started drive:"+start_timestamp.toLocaleString());
@@ -221,7 +237,7 @@ function saveCurrentDrivePermanently()
 }
 function clearCurrentDriveLog()
 {
-currentDriveEntries = [];
+	currentDriveEntries = [];
 	localStorage.removeItem('currentDriveEntries');
   //remove visual list of log entries for this drive
   while (driveEntries.firstChild) 
@@ -246,7 +262,7 @@ function writeErrorMessage(message)
 function geo_error(err)
 {
     writeErrorMessage(`ERROR(${err.code}): ${err.message}`);
-    displayLogEntry(generateLogEntryString());
+    displayLogEntry(generateLogEntryString(queueLogEntry));
     //update persistent database
     logLastEventToPersistent();
 }
@@ -283,19 +299,19 @@ function getLocation()
   }
 
 }
-function generateLogEntryString()
+function generateLogEntryString(logEntry)
 {
     var content = '';
-    if(queueLogEntry.Coords)
+    if(logEntry.Coords)
     {
-      content += "Latitude: " + queueLogEntry.Coords.latitude + 
-        "<br>Longitude: " + queueLogEntry.Coords.longitude;
+      content += "Latitude: " + logEntry.Coords.latitude + 
+        "<br>Longitude: " + logEntry.Coords.longitude;
     } else
     {
       content += "No Location<br>";
     }
-    content += "<br> Local Time: " + queueLogEntry.Timestamp.toLocaleString() +
-      "<br> Event Type: " + queueLogEntry.Event;
+    content += "<br> Local Time: " + logEntry.Timestamp.toLocaleString() +
+      "<br> Event Type: " + logEntry.Event;
   return content;
  
 }
@@ -315,7 +331,7 @@ function showPosition(position)
 {
 
  	queueLogEntry.Coords = position.coords;
-  updateLastLogEntry();
+  displayLogEntry(generateLogEntryString(queueLogEntry));
   //update persistent database
   logLastEventToPersistent();
 }
