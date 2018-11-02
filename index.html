@@ -99,10 +99,6 @@
   <h1>Choose issue type and Press Log button</h1>
   <p>Made <span></span> by @annerajb</p>
 
-  <label class="container">
-    Start Drive
-    <input type="radio" name="type" value="start" checked> 	<span class="checkmark"></span>
-    </label>
 
    <label class="container">
    Red steering wheel
@@ -146,9 +142,13 @@
       <input type="radio" name="type" value="shadow-braking">
       <span class="checkmark"></span>
     </label>
-
+<label class="container">
+       Other
+      <input type="radio" name="type" value="other" checked>
+      <span class="checkmark"></span>
+    </label>
     <label class="container">
-
+  <button id="driveBtn" class="button" onclick="driveButtonPressed()">Start Drive</button>
     <button class="button" onclick="getLocation()">Log event/issue</button>
     </label>
   </div>
@@ -161,86 +161,177 @@
   </div>
 <div>
 <script>
-
-var x = document.getElementById("demo");
+function initLogEntry()
+{
+  return {Timestamp:null, 
+  Event:null,
+  Coords:null};
+}
+var driveEntries = document.getElementById("demo");
+var driveButton = document.getElementById("driveBtn");
 var error_text = document.getElementById("error_message");
-var start_timestamp = new Date();
+
 var dbName = "tesla-autopilot-log";
-var localStorageTempObject = [];
-var lastLogEntry = {Timestamp:null, 
-Event:null,
-Coords:null};
+var currentDriveEntries = [];
+var driveInProgress = false;
+var queueLogEntry = initLogEntry();
+document.addEventListener('DOMContentLoaded', function() 
+{
+   //Load Previous drive items
+   var pastUnifinishedDriveStr = localStorage.getItem('currentDriveEntries');
+   if(pastUnifinishedDriveStr)
+   {
+      //we found items 
+      currentDriveEntries = JSON.parse(pastUnifinishedDriveStr);
+      for(let entry of currentDriveEntries)
+      {
+      	displayLogEntry(generateLogEntryString(entry));
+      }
+      driveInProgress = true;
+      driveButton.innerHTML = "End Drive";
+   }
+   
+}, false);
 function startDrive()
 {
-	start_timestamp = new Date();
-  localStorage.clear()
-   //var request = indexedDB.open(dbName, 3);
+    var start_timestamp = new Date();
+    clearCurrentDriveLog();
+    
+    displayLogEntry("Started drive:"+start_timestamp.toLocaleString());
+    logPersistentEvent("started",start_timestamp,null);
+    
+    driveInProgress = true;
+    writeErrorMessage('');
+    driveButton.innerHTML = "End Drive";
+}
+function endDrive()
+{
+
+  //Copy / Save this log entry separate
+  //Save to
+  
+  var end_timestamp = new Date;
+  
+  displayLogEntry("Ended drive:"+end_timestamp.toLocaleString());
+  logPersistentEvent("ended",end_timestamp,null);
+  
+  saveCurrentDrivePermanently();
+  
+  clearCurrentDriveLog();
+  
+  driveInProgress = false;
+  driveButton.innerHTML = "Start Drive";
+}
+function saveCurrentDrivePermanently()
+{
+//load past Drives
+	var pastDrivesStr = localStorage.getItem('pastDrivesList');
+	if(!pastDrivesStr)
+  {
+  	pastDrivesStr = JSON.stringify([]);
+  }
+  pastDrives = JSON.parse(pastDrivesStr);
+  pastDrives.push(currentDriveEntries);
+  //save past drives
+  localStorage.setItem('pastDrivesList', JSON.stringify(pastDrives));
+}
+function clearCurrentDriveLog()
+{
+	currentDriveEntries = [];
+	localStorage.removeItem('currentDriveEntries');
+  //remove visual list of log entries for this drive
+  while (driveEntries.firstChild) 
+  {
+      driveEntries.removeChild(driveEntries.firstChild);
+  }
 }
 function logPersistentEvent(event, time,coordinates)
 {
   
   var logItem = {Timestamp:time, Event:event,Coords:coordinates};
-  localStorageTempObject.push(logItem);
-  
-  localStorage.lastLoggedDrive = JSON.stringify(localStorageTempObject);
+  //add to memory object
+  currentDriveEntries.push(logItem);
+  //save to DB
+  localStorage.setItem('currentDriveEntries', JSON.stringify(currentDriveEntries));
 }
+
 function writeErrorMessage(message)
 {
 	error_text.innerHTML = message;
 }
 function geo_error(err)
 {
-	writeErrorMessage(`ERROR(${err.code}): ${err.message}`);
+    writeErrorMessage(`ERROR(${err.code}): ${err.message}`);
+    displayLogEntry(generateLogEntryString(queueLogEntry));
+    //update persistent database
+    logLastEventToPersistent();
+}
+function driveButtonPressed()
+{
+	if(!driveInProgress)
+  {
+		startDrive();
+  }else
+  {
+    endDrive(); 
+	}
+  
 }
 function getLocation() 
 {
-//callback for button press
-		var selected_type = document.querySelector('input[name="type"]:checked').value;
-    if(selected_type == "start")
-    {
-    	startDrive();
-      logEntry("Started drive:"+start_timestamp.toLocaleString());
-      logPersistentEvent("started",start_timestamp,null);
-    }
-    if (navigator.geolocation)
-    {
-        navigator.geolocation.getCurrentPosition(showPosition,geo_error);
-        var selected_type = document.querySelector('input[name="type"]:checked').value;
+	//in case we forgot to start the drive
+	if(!driveInProgress)
+  {
+		startDrive();
+  }
+  if (navigator.geolocation)
+  {
+  	var selected_type = document.querySelector('input[name="type"]:checked').value;
+    
+    queueLogEntry.Event = selected_type; 
+    queueLogEntry.Timestamp = new Date;
+    //get gps coords
+    navigator.geolocation.getCurrentPosition(showPosition,geo_error);
 
-        lastLogEntry.Event = selected_type; 
-        lastLogEntry.Timestamp = new Date;
-      
-    } else 
-    { 
-        x.innerHTML = "Geolocation is not supported by this browser.";
-    }
+  } else 
+  { 
+    writeErrorMessage("Geolocation is not supported by this browser.");
+  }
+
 }
-function updateLastLogEntry()
+function generateLogEntryString(logEntry)
 {
-	 var content  = "Latitude: " + lastLogEntry.Coords.latitude + 
-      "<br>Longitude: " + lastLogEntry.Coords.longitude+ 
-      "<br> Local Time:" + lastLogEntry.Timestamp.toLocaleString() +
-      "<br> Event Type:" + lastLogEntry.Event;
-    logEntry(content);
+    var content = '';
+    if(logEntry.Coords)
+    {
+      content += "Latitude: " + logEntry.Coords.latitude + 
+        "<br>Longitude: " + logEntry.Coords.longitude;
+    } else
+    {
+      content += "No Location<br>";
+    }
+    content += "<br> Local Time: " + logEntry.Timestamp.toLocaleString() +
+      "<br> Event Type: " + logEntry.Event;
+  return content;
  
 }
-function logEntry(content)
+function displayLogEntry(content)
 {
  		var pnode = document.createElement("p");
     pnode.innerHTML = content;
     var textnode = document.createElement("li");
     textnode.appendChild(pnode);
-    x.insertBefore(textnode,x.childNodes[0]);
+    driveEntries.insertBefore(textnode,driveEntries.childNodes[0]);
 }
 function logLastEventToPersistent()
 {
-logPersistentEvent(lastLogEntry.Event,lastLogEntry.Timestamp, lastLogEntry.Coords);
+		logPersistentEvent(queueLogEntry.Event,queueLogEntry.Timestamp, queueLogEntry.Coords);
 }
 function showPosition(position) 
 {
 
- 	lastLogEntry.Coords = position.coords;
-  updateLastLogEntry();
+ 	queueLogEntry.Coords = position.coords;
+  displayLogEntry(generateLogEntryString(queueLogEntry));
   //update persistent database
   logLastEventToPersistent();
 }
