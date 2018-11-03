@@ -144,7 +144,7 @@
     </label>
 <label class="container">
        Other
-      <input type="radio" name="type" value="other" checked>
+      <input type="radio" name="type" value="other">
       <span class="checkmark"></span>
     </label>
     <label class="container">
@@ -279,6 +279,11 @@ function driveButtonPressed()
 }
 function getLocation() 
 {
+	var selected_item = document.querySelector('input[name="type"]:checked');
+	if(selected_item == null)
+  {
+    writeErrorMessage("Select a item to Log.");
+  }
 	//in case we forgot to start the drive
 	if(!driveInProgress)
   {
@@ -286,8 +291,9 @@ function getLocation()
   }
   if (navigator.geolocation)
   {
-  	var selected_type = document.querySelector('input[name="type"]:checked').value;
+  	
     
+    var selected_type = selected_item.value;
     queueLogEntry.Event = selected_type; 
     queueLogEntry.Timestamp = new Date;
     //get gps coords
@@ -308,7 +314,7 @@ function generateLogEntryString(logEntry)
         "<br>Longitude: " + logEntry.Coords.longitude;
     } else
     {
-      content += "No Location<br>";
+      content += "No Location";
     }
     content += "<br> Local Time: " + logEntry.Timestamp.toLocaleString() +
       "<br> Event Type: " + logEntry.Event;
