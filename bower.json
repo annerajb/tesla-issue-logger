@@ -1,0 +1,21 @@
+{
+  "name": "Tesla Issue Logger",
+  "homepage": "https://github.com/annerajb/tesla-issue-logger",
+  "authors": [
+    "Anner J. Bonilla annerjb@gmail.com"
+  ],
+  "description": "Website to save to local storage",
+  "main": "index.html",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "mprogress": "v0.1.1"
+  }
+}
