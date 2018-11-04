@@ -1,0 +1,46 @@
+{
+  "name": "mprogress",
+  "version": "0.1.1",
+  "main": [
+    "mprogress.min.js",
+    "mprogress.min.css"
+  ],
+  "scripts": [
+    "build/js/mprogress.js"
+  ],
+  "styles": [
+    "build/css/mprogress.css"
+  ],
+  "moduleType": [
+    "globals"
+  ],
+  "keywords": [
+    "Material",
+    "design",
+    "linear",
+    "progress",
+    "bar"
+  ],
+  "authors": [
+    "gctang <lightningtgc@gmail.com>"
+  ],
+  "license": "MIT",
+  "homepage": "http://lightningtgc.github.io/MProgress.js/",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "0.1.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.1.1",
+    "commit": "bb5a55bf45cefe0d6beff2ce6f5f66840d36561d"
+  },
+  "_source": "https://github.com/lightningtgc/MProgress.js.git",
+  "_target": "v0.1.1",
+  "_originalSource": "mprogress",
+  "_direct": true
+}

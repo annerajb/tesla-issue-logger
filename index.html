@@ -3,303 +3,91 @@
 <head>
     <link rel='stylesheet' href='bower_components/mprogress/build/css/mprogress.css' async />
     <link rel='stylesheet' href='main.css' async />
-    <script href='bower_components/mprogress/build/css/mprogress.css' async></script>
-
+    <script type="text/javascript" src='bower_components/mprogress/build/js/mprogress.js'></script>
+    <script src="https://browser.sentry-cdn.com/4.2.4/bundle.min.js" crossorigin="anonymous"></script>
 </head>
-<body >
-<div class="row">
+<body>
+    <div class="row">
 
-  <div class="column">
-  <h1>Choose issue type and Press Log button</h1>
-  <p>Made <span></span> by @annerajb</p>
+        <div class="column">
+            <h1>Choose Event type and Press Log button</h1>
+            <p>Made by <span>@annerajb</span></p>
+
+            <label class="container">
+                Red steering wheel
+                <input type="radio" name="type" value="ap-red-wheel">
+                <span class="checkmark"></span>
+            </label>
+
+            <label class="container">
+                Auto Lane Change - Car Cancelled
+                <input type="radio" name="type" value="auto-lane-change-car-cancel">
+                <span class="checkmark"></span>
+            </label>
+            <label class="container">
+                Auto Lane Change - Manual Override
+                <input type="radio" name="type" value="auto-lane-change-manual-override">
+                <span class="checkmark"></span>
+            </label>
+            <label class="container">
+                Autopilot Disengaged - Lanes
+                <input type="radio" name="type" value="ap-disengagement-car-lines">
+                <span class="checkmark"></span>
+            </label>
+            <label class="container">
+                User Disengaged - Lanes
+                <input type="radio" name="type" value="ap-disengagement-user-lines">
+                <span class="checkmark"></span>
+            </label>
+
+            <label class="container">
+                Navigate on Autopilot - Route
+                <input type="radio" name="type" value="noa-route">
+                <span class="checkmark"></span>
+            </label>
+            <label class="container">
+                Navigate on Autopilot - Faster lane suggestion
+                <input type="radio" name="type" value="noa-lane">
+                <span class="checkmark"></span>
+            </label>
+            <label class="container">
+                Shadow braking
+                <input type="radio" name="type" value="shadow-braking">
+                <span class="checkmark"></span>
+            </label>
+            <label class="container">
+                Other
+                <input type="radio" name="type" value="other">
+                <span class="checkmark"></span>
+            </label>
+            <label id="left_buttons_container" class="container">
+                <button id="driveBtn" class="button" onclick="driveButtonPressed()">Start Drive</button>
+                <button class="button" onclick="getLocation()">Log Event</button>
+                <button class="button" onclick="clearAllHistory()">Clear History</button>
+            </label>
+        </div>
+
+        <div id="qrcode"></div>
+        <div id="right_column" class="column">
+            <p class="h2 error-message" id="error_message">
+
+            </p>
+            <p>
+                Current Drive
+            </p>
+            <ul id="demo" style="height:50vh;"></ul>
+            <div id="pastDriveLog" style="display:none;">
+                <p>
+                    Past Drive Log Founds: <div id="pastDriveCount"></div>
 
 
-   <label class="container">
-   Red steering wheel
-    <input type="radio" name="type" value="ap-red-wheel" > 
-    	<span class="checkmark"></span>
-    </label>
-
-   <label class="container">
-    Auto Lane Change - Car Cancelled
-    <input type="radio" name="type" value="auto-lane-change-car-cancel">
-    <span class="checkmark"></span>
-    </label>
-    <label class="container">
-    Auto Lane Change - Manual Override
-    <input type="radio" name="type" value="auto-lane-change-manual-override">
-    <span class="checkmark"></span>
-    </label>
-    <label class="container">
-    Autopilot Disengaged - Lanes
-    <input type="radio" name="type" value="ap-disengagement-car-lines">
-    <span class="checkmark"></span>
-    </label>
-    <label class="container">
-    User Disengaged - Lanes
-    <input type="radio" name="type" value="ap-disengagement-user-lines">
-    <span class="checkmark"></span>
-    </label>
-
-    <label class="container">
-    Navigate on Autopilot - Route
-    <input type="radio" name="type" value="noa-route">
-    <span class="checkmark"></span>
-    </label>
-     <label class="container">
-    Navigate on Autopilot - Faster lane suggestion
-    <input type="radio" name="type" value="noa-lane">
-    <span class="checkmark"></span>
-    </label>
-    <label class="container">
-      Shadow braking
-      <input type="radio" name="type" value="shadow-braking">
-      <span class="checkmark"></span>
-    </label>
-<label class="container">
-       Other
-      <input type="radio" name="type" value="other">
-      <span class="checkmark"></span>
-    </label>
-    <label class="container">
-      <button id="driveBtn" class="button" onclick="driveButtonPressed()">Start Drive</button>
-      <button class="button" onclick="getLocation()">Log event/issue</button>
-      <button class="button" onclick="clearAllHistory()">Clear History</button>
-    </label>
-  </div>
-  
-<div id="qrcode"></div>
-  <div class="column">
-  <p class="h2 error-message" id="error_message">
-  
-  </p>
-<p>
-Current Drive
-</p>
-      <ul id="demo" style="height:50vh;"></ul>
-      <div id="pastDriveLog" style="display:none;">
-        <p>
-        Past Drive Log Founds: <div id="pastDriveCount"></div>
-        
-        
-        This will be retrievable in a future version.
-        </p>
-         <ul id="old Drives"></ul>
+                    This will be retrievable in a future version.
+                </p>
+                <ul id="old Drives"></ul>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
-<script>
-function initLogEntry()
-{
-  return {Timestamp:null, 
-  Event:null,
-  Coords:null};
-}
-var driveEntries = document.getElementById("demo");
-var driveButton = document.getElementById("driveBtn");
-var error_text = document.getElementById("error_message");
 
-//var dbName = "tesla-autopilot-log";
-var currentDriveEntries = [];
-var driveInProgress = false;
-var queueLogEntry = initLogEntry();
-var pastDriveList = [];
-document.addEventListener('DOMContentLoaded', function() 
-{
-   //Load Previous drive items
-   var pastUnifinishedDriveStr = localStorage.getItem('currentDriveEntries');
-   if(pastUnifinishedDriveStr)
-   {
-      //we found items 
-      currentDriveEntries = JSON.parse(pastUnifinishedDriveStr);
-      for(let entry of currentDriveEntries)
-      {
-      	displayLogEntry(generateLogEntryString(entry));
-      }
-      driveInProgress = true;
-      driveButton.innerHTML = "End Drive";
-   }
-   pastDriveList = retrievePastDrivesList();
-   if(pastDriveList && pastDriveList.length > 0)
-   {
-   		var dl = document.getElementById('pastDriveLog');
-      dl.style.display = "block";
-      var countPastDriveLog= document.getElementById('pastDriveCount');
-      countPastDriveLog.innerHTML = pastDriveList.length;
-      //display that we have old drives saved
-      /*for(let entry of pastDriveList)
-      {
-
-      }*/
-   }
-   
-}, false);
-function retrievePastDrivesList()
-{
-	var pastDrivesStr = localStorage.getItem('pastDrivesList');
-    if(!pastDrivesStr)
-    {
-      pastDrivesStr = JSON.stringify([]);
-    }
-    return JSON.parse(pastDrivesStr);
-}
-function startDrive()
-{
-    var start_timestamp = new Date();
-    clearCurrentDriveLog();
-    
-    displayLogEntry("Started drive:"+start_timestamp.toLocaleString());
-    logPersistentEvent("started",start_timestamp,null);
-    
-    driveInProgress = true;
-    writeErrorMessage('');
-    driveButton.innerHTML = "End Drive";
-}
-function endDrive()
-{
-
-  //Copy / Save this log entry separate
-  //Save to
-  
-  var end_timestamp = new Date;
-  
-  displayLogEntry("Ended drive:"+end_timestamp.toLocaleString());
-  logPersistentEvent("ended",end_timestamp,null);
-  
-  saveCurrentDrivePermanently();
-  
-  clearCurrentDriveLog();
-  
-  driveInProgress = false;
-  driveButton.innerHTML = "Start Drive";
-}
-function clearAllHistory()
-{
-  //clear everything from the current drive 
-  clearCurrentDriveLog();
-  clearAllDbHistory();
-}
-function clearAllDbHistory()
-{
-  localStorage.removeItem('pastDrivesList');
-  localStorage.removeItem('currentDriveEntries');
-}
-function saveCurrentDrivePermanently()
-{
-	//load past Drives
-	
-  pastDrives = retrievePastDrivesList();
-  pastDrives.push(currentDriveEntries);
-  //save past drives
-  localStorage.setItem('pastDrivesList', JSON.stringify(pastDrives));
-}
-function clearCurrentDriveLog()
-{
-	currentDriveEntries = [];
-	localStorage.removeItem('currentDriveEntries');
-  //remove visual list of log entries for this drive
-  while (driveEntries.firstChild) 
-  {
-      driveEntries.removeChild(driveEntries.firstChild);
-  }
-}
-function logPersistentEvent(event, time,coordinates)
-{
-  
-  var logItem = {Timestamp:time, Event:event,Coords:coordinates};
-  //add to memory object
-  currentDriveEntries.push(logItem);
-  //save to DB
-  localStorage.setItem('currentDriveEntries', JSON.stringify(currentDriveEntries));
-}
-
-function writeErrorMessage(message)
-{
-	error_text.innerHTML = message;
-}
-function geo_error(err)
-{
-    writeErrorMessage(`ERROR(${err.code}): ${err.message}`);
-    displayLogEntry(generateLogEntryString(queueLogEntry));
-    //update persistent database
-    logLastEventToPersistent();
-}
-function driveButtonPressed()
-{
-	if(!driveInProgress)
-  {
-		startDrive();
-  }else
-  {
-    endDrive(); 
-	}
-  
-}
-function getLocation() 
-{
-	var selected_item = document.querySelector('input[name="type"]:checked');
-	if(selected_item == null)
-  {
-    writeErrorMessage("Select a item to Log.");
-  }
-	//in case we forgot to start the drive
-	if(!driveInProgress)
-  {
-		startDrive();
-  }
-  if (navigator.geolocation)
-  {
-  	
-    
-    var selected_type = selected_item.value;
-    queueLogEntry.Event = selected_type; 
-    queueLogEntry.Timestamp = new Date;
-    //get gps coords
-    navigator.geolocation.getCurrentPosition(showPosition,geo_error);
-
-  } else 
-  { 
-    writeErrorMessage("Geolocation is not supported by this browser.");
-  }
-
-}
-function generateLogEntryString(logEntry)
-{
-    var content = '';
-    if(logEntry.Coords)
-    {
-      content += "Latitude: " + logEntry.Coords.latitude + 
-        "<br>Longitude: " + logEntry.Coords.longitude;
-    } else
-    {
-      content += "No Location";
-    }
-    content += "<br> Local Time: " + logEntry.Timestamp.toLocaleString() +
-      "<br> Event Type: " + logEntry.Event;
-  return content;
- 
-}
-function displayLogEntry(content)
-{
- 		var pnode = document.createElement("p");
-    pnode.innerHTML = content;
-    var textnode = document.createElement("li");
-    textnode.appendChild(pnode);
-    driveEntries.insertBefore(textnode,driveEntries.childNodes[0]);
-}
-function logLastEventToPersistent()
-{
-		logPersistentEvent(queueLogEntry.Event,queueLogEntry.Timestamp, queueLogEntry.Coords);
-}
-function showPosition(position) 
-{
-
- 	queueLogEntry.Coords = position.coords;
-  displayLogEntry(generateLogEntryString(queueLogEntry));
-  //update persistent database
-  logLastEventToPersistent();
-}
-</script>
-
+    <script type="text/javascript" src='main.js'></script>
 </body>
 </html>
