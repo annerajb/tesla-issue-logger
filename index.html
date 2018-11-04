@@ -7,6 +7,54 @@
 
 </head>
 <body >
+<style type="text/css">
+.button {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+/* The container */
+.container {
+    display: block;
+    position: relative;
+    padding-left: 55px;
+    margin-bottom: 50px;
+    cursor: pointer;
+    font-size: 22px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.error-message
+{
+  
+}
+/* Hide the browser's default radio button */
+.container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+/* Create a custom radio button */
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 50px;
+    width: 50px;
+    background-color: #eee;
+    border-radius: 50%;
+}
 
 <div class="row">
 
@@ -63,10 +111,12 @@
       <span class="checkmark"></span>
     </label>
     <label class="container">
-  <button id="driveBtn" class="button" onclick="driveButtonPressed()">Start Drive</button>
-    <button class="button" onclick="getLocation()">Log event/issue</button>
+      <button id="driveBtn" class="button" onclick="driveButtonPressed()">Start Drive</button>
+      <button class="button" onclick="getLocation()">Log event/issue</button>
+      <button class="button" onclick="clearAllHistory()">Clear History</button>
     </label>
   </div>
+  
 <div id="qrcode"></div>
   <div class="column">
   <p class="h2 error-message" id="error_message">
@@ -98,7 +148,7 @@ var driveEntries = document.getElementById("demo");
 var driveButton = document.getElementById("driveBtn");
 var error_text = document.getElementById("error_message");
 
-var dbName = "tesla-autopilot-log";
+//var dbName = "tesla-autopilot-log";
 var currentDriveEntries = [];
 var driveInProgress = false;
 var queueLogEntry = initLogEntry();
@@ -171,6 +221,17 @@ function endDrive()
   
   driveInProgress = false;
   driveButton.innerHTML = "Start Drive";
+}
+function clearAllHistory()
+{
+  //clear everything from the current drive 
+  clearCurrentDriveLog();
+  clearAllDbHistory();
+}
+function clearAllDbHistory()
+{
+  localStorage.removeItem('pastDrivesList');
+  localStorage.removeItem('currentDriveEntries');
 }
 function saveCurrentDrivePermanently()
 {
