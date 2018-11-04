@@ -22,7 +22,7 @@
     margin-bottom: 50px;
     cursor: pointer;
     font-size: 22px;
-    -webkit-user-select: none;
+    -webkit-user-select: none;  
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
@@ -148,10 +148,12 @@
       <span class="checkmark"></span>
     </label>
     <label class="container">
-  <button id="driveBtn" class="button" onclick="driveButtonPressed()">Start Drive</button>
-    <button class="button" onclick="getLocation()">Log event/issue</button>
+      <button id="driveBtn" class="button" onclick="driveButtonPressed()">Start Drive</button>
+      <button class="button" onclick="getLocation()">Log event/issue</button>
+      <button class="button" onclick="clearAllHistory()">Clear History</button>
     </label>
   </div>
+  
 <div id="qrcode"></div>
   <div class="column">
   <p class="h2 error-message" id="error_message">
@@ -171,7 +173,7 @@ Current Drive
          <ul id="old Drives"></ul>
     </div>
   </div>
-<div>
+</div>
 <script>
 function initLogEntry()
 {
@@ -183,7 +185,7 @@ var driveEntries = document.getElementById("demo");
 var driveButton = document.getElementById("driveBtn");
 var error_text = document.getElementById("error_message");
 
-var dbName = "tesla-autopilot-log";
+//var dbName = "tesla-autopilot-log";
 var currentDriveEntries = [];
 var driveInProgress = false;
 var queueLogEntry = initLogEntry();
@@ -256,6 +258,17 @@ function endDrive()
   
   driveInProgress = false;
   driveButton.innerHTML = "Start Drive";
+}
+function clearAllHistory()
+{
+  //clear everything from the current drive 
+  clearCurrentDriveLog();
+  clearAllDbHistory();
+}
+function clearAllDbHistory()
+{
+  localStorage.removeItem('pastDrivesList');
+  localStorage.removeItem('currentDriveEntries');
 }
 function saveCurrentDrivePermanently()
 {
