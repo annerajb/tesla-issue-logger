@@ -2,7 +2,8 @@
     return {
         Timestamp: null,
         Event: null,
-        Coords: null
+        Coords: {latitude: null,
+            longitude: null}
     };
 }
 var driveEntries = document.getElementById("demo");
@@ -15,6 +16,7 @@ var driveInProgress = false;
 var queueLogEntry = initLogEntry();
 var pastDriveList = [];
 var mprogress = null;
+let developer_mode = false;
 document.addEventListener('DOMContentLoaded', function ()
 {
     if (window.location.href) {
@@ -22,6 +24,9 @@ document.addEventListener('DOMContentLoaded', function ()
         let searchParams = new URLSearchParams(url.search);
         let foundDev = searchParams.get('dev');
         if (foundDev === '1') {
+            
+            developer_mode = 1;
+            developerMode();
             Sentry.init({ dsn: 'https://2a4a905c730d48b6aef4888482732f7e@sentry.io/1315531' });
         }
         
@@ -33,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function ()
         //we found items 
         currentDriveEntries = JSON.parse(pastUnifinishedDriveStr);
         for (let entry of currentDriveEntries) {
+            
             displayLogEntry(generateLogEntryString(entry));
         }
         driveInProgress = true;
@@ -41,10 +47,23 @@ document.addEventListener('DOMContentLoaded', function ()
     retrieveAndDisplayPastDrives();
 
 }, false);
+function developerMode()
+{
+    let dl = document.getElementById('submitMessage');
+    if(dl)
+    {
+        dl.style.display = "block";
+    }
+}
+function submitMessage()
+{
+    Sentry.captureMessage("Issue found and submitted by user");
+}
 function retrieveAndDisplayPastDrives() {
     pastDriveList = retrievePastDrivesList();
+    let dl = document.getElementById('pastDriveLog');
     if (pastDriveList && pastDriveList.length > 0) {
-        var dl = document.getElementById('pastDriveLog');
+       
         dl.style.display = "block";
         var countPastDriveLog = document.getElementById('pastDriveCount');
         countPastDriveLog.innerHTML = pastDriveList.length;
@@ -53,6 +72,8 @@ function retrieveAndDisplayPastDrives() {
         {
   
         }*/
+    }else{
+        dl.style.display = "hidden";
     }
 }
 function retrievePastDrivesList() {
@@ -92,15 +113,28 @@ function endDrive() {
     saveCurrentDrivePermanently();
 
     clearCurrentDriveLog();
-
+    uncheckSelection();
     driveInProgress = false;
     endDriveVisual();
     retrieveAndDisplayPastDrives();
+}
+function uncheckSelection()
+{
+    let selected_items = retrieveSelected();
+    if(selected_items)
+    {
+        selected_items.checked = false;
+    }
 }
 function clearAllHistory() {
     //clear everything from the current drive 
     clearCurrentDriveLog();
     clearAllDbHistory();
+
+    driveInProgress = false;
+    endDriveVisual();
+    uncheckSelection();
+    retrieveAndDisplayPastDrives();
 }
 function clearAllDbHistory()
 {
@@ -126,8 +160,16 @@ function clearCurrentDriveLog() {
 }
 function logPersistentEvent(event, time, coordinates) {
 
-    var logItem = { Timestamp: time, Event: event, Coords: coordinates };
     //add to memory object
+    var logItem = { Timestamp: time,
+         Event: event,
+          Coords: null 
+    };
+    if(coordinates != null)
+    {
+        logItem.Coords ={latitude: coordinates.latitude,
+            latitude:coordinates.longitude}
+    }
     currentDriveEntries.push(logItem);
     //save to DB
     localStorage.setItem('currentDriveEntries', JSON.stringify(currentDriveEntries));
@@ -137,7 +179,13 @@ function writeErrorMessage(message) {
     error_text.innerHTML = message;
 }
 function geo_error(err) {
+    
     mprogress.end();
+    Sentry.addBreadcrumb({
+        category: 'ui',
+        message: 'geo_error called',
+        level: 'info'
+      });
     writeErrorMessage(`ERROR(${err.code}): ${err.message}`);
     displayLogEntry(generateLogEntryString(queueLogEntry));
     //update persistent database
@@ -151,16 +199,27 @@ function driveButtonPressed() {
     }
 
 }
+function retrieveSelected()
+{
+    return document.querySelector('input[name="type"]:checked');
+
+}
 function getLocation() {
-    var selected_item = document.querySelector('input[name="type"]:checked');
+    var selected_item = retrieveSelected();
     if (selected_item == null) {
         writeErrorMessage("Select a item to Log.");
         return;
     }
+    selected_item.checked = false;
     //in case we forgot to start the drive
     if (!driveInProgress) {
         startDrive();
     }
+    Sentry.addBreadcrumb({
+        category: 'ui',
+        message: 'getLocation Pressed',
+        level: 'info'
+      });
     if (navigator.geolocation) {
         mprogress.start();
         var selected_type = selected_item.value;
@@ -198,8 +257,14 @@ function logLastEventToPersistent() {
     logPersistentEvent(queueLogEntry.Event, queueLogEntry.Timestamp, queueLogEntry.Coords);
 }
 function showPosition(position) {
+    Sentry.addBreadcrumb({
+        category: 'ui',
+        message: 'show position called',
+        level: 'info'
+      });
     mprogress.end();
-    queueLogEntry.Coords = position.coords;
+    queueLogEntry.Coords.latitude = position.coords.latitude;
+    queueLogEntry.Coords.longitude = position.coords.longitude;
     displayLogEntry(generateLogEntryString(queueLogEntry));
     //update persistent database
     logLastEventToPersistent();
