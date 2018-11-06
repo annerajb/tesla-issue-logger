@@ -168,7 +168,7 @@ function logPersistentEvent(event, time, coordinates) {
     if(coordinates != null)
     {
         logItem.Coords ={latitude: coordinates.latitude,
-            latitude:coordinates.longitude}
+            longitude:coordinates.longitude}
     }
     currentDriveEntries.push(logItem);
     //save to DB
