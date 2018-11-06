@@ -9,7 +9,7 @@
 var driveEntries = document.getElementById("demo");
 var driveButton = document.getElementById("driveBtn");
 var error_text = document.getElementById("error_message");
-
+var issues_list = document.getElementById('issues_list');
 //var dbName = "tesla-autopilot-log";
 var currentDriveEntries = [];
 var driveInProgress = false;
@@ -17,6 +17,7 @@ var queueLogEntry = initLogEntry();
 var pastDriveList = [];
 var mprogress = null;
 let developer_mode = false;
+
 document.addEventListener('DOMContentLoaded', function ()
 {
     if (window.location.href) {
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function ()
         }
         
     }
+    addBreadcrumb("DomContentloaded")
     mprogress = new Mprogress({ template: 3, parent:'#left_buttons_container'});
     //Load Previous drive items
     var pastUnifinishedDriveStr = localStorage.getItem('currentDriveEntries');
@@ -84,6 +86,7 @@ function retrievePastDrivesList() {
     return JSON.parse(pastDrivesStr);
 }
 function startDrive() {
+    addBreadcrumb('start drive');
     var start_timestamp = new Date();
     clearCurrentDriveLog();
 
@@ -104,6 +107,7 @@ function endDriveVisual() {
     driveButton.style.backgroundColor = '#4CAF50';
 }
 function endDrive() {
+    addBreadcrumb("end drive");
     //Copy / Save this log entry separate
     var end_timestamp = new Date;
 
@@ -127,6 +131,7 @@ function uncheckSelection()
     }
 }
 function clearAllHistory() {
+    addBreadcrumb("clear all history");
     //clear everything from the current drive 
     clearCurrentDriveLog();
     clearAllDbHistory();
@@ -178,21 +183,39 @@ function logPersistentEvent(event, time, coordinates) {
 function writeErrorMessage(message) {
     error_text.innerHTML = message;
 }
+function addBreadcrumb(message)
+{
+    if(developer_mode)
+    {
+        Sentry.addBreadcrumb({
+            category: 'ui',
+            message: message,
+            level: 'info'
+        });
+    }
+    if(issues_list)
+    {
+        var pnode = document.createElement("p");
+        pnode.innerHTML = message;
+        var textnode = document.createElement("li");
+        textnode.appendChild(pnode);
+        issues_list.insertBefore(textnode, null);
+        
+    }
+}
 function geo_error(err) {
     
     mprogress.end();
-    Sentry.addBreadcrumb({
-        category: 'ui',
-        message: 'geo_error called',
-        level: 'info'
-      });
+    addBreadcrumb('geo_error called:'+err.message);
     writeErrorMessage(`ERROR(${err.code}): ${err.message}`);
     displayLogEntry(generateLogEntryString(queueLogEntry));
     //update persistent database
     logLastEventToPersistent();
 }
 function driveButtonPressed() {
+   
     if (!driveInProgress) {
+        
         startDrive();
     } else {
         endDrive();
@@ -206,27 +229,27 @@ function retrieveSelected()
 }
 function getLocation() {
     var selected_item = retrieveSelected();
-    if (selected_item == null) {
+    if (selected_item == null) 
+    {
+        addBreadcrumb("no item to log");
         writeErrorMessage("Select a item to Log.");
         return;
     }
+    addBreadcrumb('getLocation Pressed');
     selected_item.checked = false;
     //in case we forgot to start the drive
     if (!driveInProgress) {
         startDrive();
     }
-    Sentry.addBreadcrumb({
-        category: 'ui',
-        message: 'getLocation Pressed',
-        level: 'info'
-      });
+   
+    
     if (navigator.geolocation) {
         mprogress.start();
         var selected_type = selected_item.value;
         queueLogEntry.Event = selected_type;
         queueLogEntry.Timestamp = new Date;
         //get gps coords
-        navigator.geolocation.getCurrentPosition(showPosition, geo_error);
+        navigator.geolocation.getCurrentPosition(showPositionCB, geo_error);
 
     } else {
         writeErrorMessage("Geolocation is not supported by this browser.");
@@ -256,12 +279,9 @@ function displayLogEntry(content) {
 function logLastEventToPersistent() {
     logPersistentEvent(queueLogEntry.Event, queueLogEntry.Timestamp, queueLogEntry.Coords);
 }
-function showPosition(position) {
-    Sentry.addBreadcrumb({
-        category: 'ui',
-        message: 'show position called',
-        level: 'info'
-      });
+function showPositionCB(position) {
+    addBreadcrumb('showPosition Callback called');
+  
     mprogress.end();
     queueLogEntry.Coords.latitude = position.coords.latitude;
     queueLogEntry.Coords.longitude = position.coords.longitude;

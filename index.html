@@ -16,7 +16,7 @@
 
             <label class="container">
                 Red steering wheel
-                <input type="radio" name="type" value="ap-red-wheel">
+                <input id="ap-red-wheel-input" type="radio" name="type" value="ap-red-wheel">
                 <span class="checkmark"></span>
             </label>
 
@@ -61,12 +61,12 @@
                 <input type="radio" name="type" value="other">
                 <span class="checkmark"></span>
             </label>
-            <label id="left_buttons_container" class="container">
+            <div id="left_buttons_container" class="container">
                 <button id="driveBtn" class="button" onclick="driveButtonPressed()">Start Drive</button>
                 <button class="button" onclick="getLocation()">Log Event</button>
                 <button class="button" onclick="clearAllHistory()">Clear History</button>
                 <button id="submitMessage" style="display: none " class="button" onclick="submitMessage()">Submit Message</button>
-            </label>
+            </div>
         </div>
 
         <div id="qrcode"></div>
@@ -85,8 +85,9 @@
 
                     This will be retrievable in a future version.
                 </p>
-                <ul id="old Drives"></ul>
+                <ul id="old_drives_list"></ul>
             </div>
+            <ul id="issues_list"></ul>
         </div>
     </div>
 

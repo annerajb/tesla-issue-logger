@@ -1,7 +1,18 @@
-﻿.button {
-    background-color: #4CAF50;
+﻿:root {
+    --back-color: white;
+    --hover-color: #ccc;
+    --text-color: black;
+    --error-text-color: red;
+    --selected-color: #2196F3;
+    --progress-bg-color: #4CAF50;
+}
+body { 
+    color: var(--text-color);
+    background: var(--back-color)}
+.button {
+    background-color: var(--progress-bg-color);
     border: none;
-    color: white;
+    color:var(--back-color);
     padding: 15px 32px;
     text-align: center;
     text-decoration: none;
@@ -16,7 +27,7 @@
     position: relative;
     padding-left: 55px;
     margin-bottom: 50px;
-    cursor: pointer;
+    
     font-size: 22px;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -25,7 +36,7 @@
 }
 
 .error-message {
-    color: red;
+    color: var(--error-text-color);
 }
 /* Hide the browser's default radio button */
 .container input {
@@ -47,7 +58,7 @@
 
 /* On mouse-over, add a grey background color */
 .container:hover input ~ .checkmark {
-    background-color: #ccc;
+    background-color: var(--hover-color);
 }
 
 .column {
@@ -63,7 +74,7 @@
 }
 /* When the radio button is checked, add a blue background */
 .container input:checked ~ .checkmark {
-    background-color: #2196F3;
+    background-color: var(--selected-color);
 }
 
 /* Create the indicator (the dot/circle - hidden when not checked) */
@@ -85,5 +96,5 @@
     width: 25px;
     height: 25px;
     border-radius: 50%;
-    background: white;
+    background: var(--back-color);
 }
